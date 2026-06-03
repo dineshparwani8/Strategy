@@ -9,7 +9,7 @@
     "position_size": null,
     "entry_time": null,
     "signal_candle_time": null,
-    "last_check": "2026-06-03T12:07:44.271806+00:00"
+    "last_check": "2026-06-03T12:25:18.811490+00:00"
   },
   "ETH/USDT": {
     "status": "IDLE",
@@ -21,6 +21,6 @@
     "position_size": null,
     "entry_time": null,
     "signal_candle_time": null,
-    "last_check": "2026-06-03T12:07:44.271806+00:00"
+    "last_check": "2026-06-03T12:25:18.811490+00:00"
   }
 }
