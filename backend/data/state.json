@@ -1,0 +1,26 @@
+{
+  "BTC/USDT": {
+    "status": "IDLE",
+    "capital": 10000.0,
+    "trade_type": null,
+    "entry_price": null,
+    "stop_price": null,
+    "target_price": null,
+    "position_size": null,
+    "entry_time": null,
+    "signal_candle_time": null,
+    "last_check": "2026-06-03T12:00:00.005233+00:00"
+  },
+  "ETH/USDT": {
+    "status": "IDLE",
+    "capital": 10000.0,
+    "trade_type": null,
+    "entry_price": null,
+    "stop_price": null,
+    "target_price": null,
+    "position_size": null,
+    "entry_time": null,
+    "signal_candle_time": null,
+    "last_check": "2026-06-03T12:00:00.005233+00:00"
+  }
+}

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Engulf-Bot · Live Forward Tester</title>
+  <meta name="description" content="Live forward-testing dashboard for the Engulfing Retracement strategy on BTC/USDT and ETH/USDT." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ HEADER ══════ -->
+<header id="header">
+  <div class="header-left">
+    <div class="logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">Engulf<span class="logo-accent">Bot</span></span>
+    </div>
+    <div class="header-badge">LIVE FORWARD TEST</div>
+  </div>
+
+  <div class="price-strip" id="priceStrip">
+    <div class="price-chip" id="priceBTC">
+      <span class="price-label">BTC</span>
+      <span class="price-value mono" id="btcPrice">—</span>
+      <span class="price-chg" id="btcChg">—</span>
+    </div>
+    <div class="price-sep"></div>
+    <div class="price-chip" id="priceETH">
+      <span class="price-label eth">ETH</span>
+      <span class="price-value mono" id="ethPrice">—</span>
+      <span class="price-chg" id="ethChg">—</span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-label" id="statusLabel">Connecting…</span>
+    <span class="clock mono" id="clock"></span>
+    <button id="btnTrigger" class="btn-trigger" title="Manually run strategy check">⟳ Run Check</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════ MAIN ════════ -->
+<main>
+
+  <!-- ── Stats row ── -->
+  <section class="stats-row" id="statsRow">
+    <div class="stat-card" id="statCapital">
+      <div class="stat-icon">💰</div>
+      <div class="stat-body">
+        <div class="stat-label">Total Capital</div>
+        <div class="stat-value mono" id="statCapitalVal">$—</div>
+        <div class="stat-sub" id="statCapitalRet">—</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-body">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-value mono" id="statTrades">—</div>
+        <div class="stat-sub" id="statTradesSub">—</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-body">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value mono" id="statWinRate">—</div>
+        <div class="stat-sub" id="statWinRateSub">—</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-body">
+        <div class="stat-label">Total P&amp;L</div>
+        <div class="stat-value mono" id="statPnl">—</div>
+        <div class="stat-sub" id="statPnlSub">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Middle: Positions + Chart ── -->
+  <section class="mid-row">
+
+    <!-- Open Positions -->
+    <div class="positions-panel">
+      <div class="panel-header">
+        <h2>Open Positions</h2>
+        <span class="panel-badge" id="posCount">0</span>
+      </div>
+      <div id="positionCards"></div>
+
+      <!-- Per-symbol breakdown -->
+      <div class="sym-breakdown">
+        <div class="sym-card btc-sym" id="symBTC">
+          <div class="sym-header">
+            <span class="sym-tag btc">BTC/USDT</span>
+            <span class="sym-status" id="btcStatus">IDLE</span>
+          </div>
+          <div class="sym-capital mono" id="btcCapital">$10,000.00</div>
+          <div class="sym-ret" id="btcRet">—</div>
+          <div class="sym-bar-wrap"><div class="sym-bar btc-bar" id="btcBar" style="width:50%"></div></div>
+          <div class="sym-stats-row">
+            <span>Trades: <strong id="btcTrades">0</strong></span>
+            <span>WR: <strong id="btcWr">—</strong></span>
+            <span>PnL: <strong id="btcPnl">—</strong></span>
+          </div>
+        </div>
+        <div class="sym-card eth-sym" id="symETH">
+          <div class="sym-header">
+            <span class="sym-tag eth">ETH/USDT</span>
+            <span class="sym-status" id="ethStatus">IDLE</span>
+          </div>
+          <div class="sym-capital mono" id="ethCapital">$10,000.00</div>
+          <div class="sym-ret" id="ethRet">—</div>
+          <div class="sym-bar-wrap"><div class="sym-bar eth-bar" id="ethBar" style="width:50%"></div></div>
+          <div class="sym-stats-row">
+            <span>Trades: <strong id="ethTrades">0</strong></span>
+            <span>WR: <strong id="ethWr">—</strong></span>
+            <span>PnL: <strong id="ethPnl">—</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Equity Curve -->
+    <div class="chart-panel">
+      <div class="panel-header">
+        <h2>Equity Curve</h2>
+        <div class="chart-legend">
+          <span class="leg-dot btc-dot"></span><span>BTC/USDT</span>
+          <span class="leg-dot eth-dot"></span><span>ETH/USDT</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="equityChart"></canvas>
+        <div class="chart-empty" id="chartEmpty">
+          <div>📉</div>
+          <div>No completed trades yet</div>
+          <div class="chart-empty-sub">Trades will appear here after the first exit</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── Trade History ── -->
+  <section class="history-panel">
+    <div class="panel-header">
+      <h2>Trade History <span class="history-sub">(Last 30 Days)</span></h2>
+      <div class="filter-row">
+        <select id="filterSym" class="filter-sel">
+          <option value="">All Symbols</option>
+          <option value="BTC/USDT">BTC/USDT</option>
+          <option value="ETH/USDT">ETH/USDT</option>
+        </select>
+        <select id="filterResult" class="filter-sel">
+          <option value="">All Results</option>
+          <option value="WIN">WIN</option>
+          <option value="LOSS">LOSS</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="trade-table" id="tradeTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Symbol</th>
+            <th>Type</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>SL</th>
+            <th>TP</th>
+            <th>Size</th>
+            <th>P&amp;L</th>
+            <th>Capital</th>
+            <th>Result</th>
+            <th>Reason</th>
+            <th>Entry Time</th>
+            <th>Exit Time</th>
+          </tr>
+        </thead>
+        <tbody id="tradeBody">
+          <tr class="empty-row">
+            <td colspan="14">
+              <div class="empty-msg">No trades recorded yet. The bot checks every 15 minutes.</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer" id="tableFooter"></div>
+  </section>
+
+</main>
+
+<!-- ── Toast notifications ── -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
