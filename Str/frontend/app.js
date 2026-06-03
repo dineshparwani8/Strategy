@@ -84,6 +84,101 @@ function renderPrices(data) {
 }
 
 /* ══════════════════════════════════════════════════════════
+   WEBSOCKET PRICES (Real-time every tick)
+══════════════════════════════════════════════════════════ */
+function updateOpenPositionCardsLivePrice(sym, price) {
+  const card = document.querySelector(`.pos-card[data-symbol="${sym}"]`);
+  if (!card) return;
+
+  const livePriceEl = card.querySelector(".pos-live-price");
+  if (livePriceEl) {
+    livePriceEl.textContent = "$" + fmt(price, 2);
+  }
+
+  // Update progress bar
+  const slEl = card.querySelector(".sl");
+  const tpEl = card.querySelector(".tp");
+  const typeEl = card.querySelector(".pos-type");
+  const progressBar = card.querySelector(".pos-progress-bar");
+
+  if (progressBar && slEl && tpEl && typeEl) {
+    const stopVal = parseFloat(slEl.textContent.replace("$", "").replace(/,/g, ""));
+    const targetVal = parseFloat(tpEl.textContent.replace("$", "").replace(/,/g, ""));
+    const tradeType = typeEl.textContent.trim();
+
+    const range = Math.abs(targetVal - stopVal);
+    if (range > 0) {
+      const dist = tradeType === "LONG"
+        ? (price - stopVal)
+        : (stopVal - price);
+      const progress = Math.max(0, Math.min(100, (dist / range) * 100));
+      progressBar.style.width = progress.toFixed(0) + "%";
+    }
+  }
+}
+
+function initPriceWebSocket() {
+  const wsUrl = "wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/ethusdt@ticker";
+  const ws = new WebSocket(wsUrl);
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      const data = msg.data;
+      if (!data) return;
+
+      const rawSym = data.s; // e.g. "BTCUSDT"
+      const sym = rawSym === "BTCUSDT" ? "BTC/USDT" : rawSym === "ETHUSDT" ? "ETH/USDT" : null;
+      if (!sym) return;
+
+      const price = parseFloat(data.c);
+      const changePct = parseFloat(data.P);
+
+      // Initialize if not present
+      if (!lastPrices[sym]) {
+        lastPrices[sym] = { symbol: sym };
+      }
+
+      // Update state
+      lastPrices[sym].price = price;
+      lastPrices[sym].change_pct = changePct;
+      lastPrices[sym].volume_24h = parseFloat(data.v);
+      lastPrices[sym].high_24h = parseFloat(data.h);
+      lastPrices[sym].low_24h = parseFloat(data.l);
+
+      // Update UI elements for the price strip
+      const shortSym = sym.split("/")[0].toLowerCase(); // "btc" or "eth"
+      const priceEl = $(shortSym + "Price");
+      const chgEl = $(shortSym + "Chg");
+
+      if (priceEl) {
+        priceEl.textContent = "$" + fmt(price, 0);
+      }
+      if (chgEl) {
+        chgEl.textContent = pct(changePct);
+        chgEl.className = "price-chg " + (changePct >= 0 ? "up" : "down");
+      }
+
+      // If we are currently in trade, update the progress bar dynamically
+      updateOpenPositionCardsLivePrice(sym, price);
+
+    } catch (e) {
+      console.warn("WebSocket parse error:", e);
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err);
+  };
+
+  ws.onclose = () => {
+    console.log("WebSocket disconnected. Reconnecting in 5s...");
+    setTimeout(initPriceWebSocket, 5000);
+  };
+}
+
+
+/* ══════════════════════════════════════════════════════════
    STATUS  (open positions)
 ══════════════════════════════════════════════════════════ */
 async function fetchStatus() {
@@ -128,7 +223,7 @@ function renderPositions(symbols) {
 
       const isBTC = sym.includes("BTC");
       cards.push(`
-        <div class="pos-card">
+        <div class="pos-card" data-symbol="${sym}">
           <div class="pos-card-header">
             <span class="pos-sym">${sym}</span>
             <span class="pos-type ${s.trade_type === "LONG" ? "long" : "short"}">${s.trade_type}</span>
@@ -152,7 +247,7 @@ function renderPositions(symbols) {
             </div>
             <div class="pos-item">
               <div class="pos-item-label">Live Price</div>
-              <div class="pos-item-val mono">${price ? "$" + fmt(price, 2) : "—"}</div>
+              <div class="pos-item-val mono pos-live-price">${price ? "$" + fmt(price, 2) : "—"}</div>
             </div>
             <div class="pos-item">
               <div class="pos-item-label">Since</div>
@@ -161,7 +256,7 @@ function renderPositions(symbols) {
           </div>
           <div class="pos-bar-row">
             <div class="pos-bar-track">
-              <div class="pos-bar-fill ${isBTC ? "btc-bar" : "eth-bar"}" style="width:${progress.toFixed(0)}%"></div>
+              <div class="pos-bar-fill ${isBTC ? "btc-bar" : "eth-bar"} pos-progress-bar" style="width:${progress.toFixed(0)}%"></div>
             </div>
           </div>
         </div>`
@@ -411,7 +506,7 @@ $("filterResult").addEventListener("change", e => { filterResult = e.target.valu
 (async () => {
   await fetchPrices();   // prices first (needed for pos cards)
   await refresh();       // full data load
+  initPriceWebSocket();  // keep prices updated in real-time every tick
 
-  setInterval(fetchPrices, PRICE_MS);   // prices every 15 s
   setInterval(refresh,     POLL_MS);    // full refresh every 30 s
 })();
